@@ -186,39 +186,77 @@ def parse_all_links(soup, source):
 # READ BOTH PAGES
 # ==========================
 
+# ==========================
+# COLLECT ALL NOTICES
+# ==========================
+
 def collect_jobs():
 
-    all_jobs = []
-
-    print("Checking Home Page...")
+    jobs = []
 
     home = get_page(HOME_URL)
 
     if home:
-        all_jobs.extend(
-            parse_all_links(
-                home,
-                "Home Page"
-            )
-        )
 
-    print("Checking Recruitment Page...")
+        ticker = home.find("div", class_="news-ticker-horizontal")
+
+        if ticker:
+
+            for li in ticker.find_all("li"):
+
+                a = li.find("a")
+
+                if not a:
+                    continue
+
+                title = clean_text(a.get_text())
+
+                if len(title) < 8:
+                    continue
+
+                href = absolute_link(a.get("href", ""))
+
+                jobs.append({
+
+                    "title": title,
+
+                    "link": href,
+
+                    "source": "Latest News",
+
+                    "date": datetime.now().strftime("%d-%m-%Y")
+
+                })
 
     recruit = get_page(RECRUITMENT_URL)
 
     if recruit:
-        all_jobs.extend(
-            parse_all_links(
-                recruit,
-                "Recruitment Page"
-            )
-        )
+
+        for a in recruit.find_all("a"):
+
+            title = clean_text(a.get_text())
+
+            href = absolute_link(a.get("href", ""))
+
+            if len(title) < 10:
+                continue
+
+            jobs.append({
+
+                "title": title,
+
+                "link": href,
+
+                "source": "Recruitment",
+
+                "date": datetime.now().strftime("%d-%m-%Y")
+
+            })
 
     unique = {}
 
-    for job in all_jobs:
-
-        unique[job["link"]] = job
+    for job in jobs:
+        unique[job["title"]] = job
 
     return list(unique.values())
   # ==========================
